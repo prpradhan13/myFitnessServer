@@ -14,13 +14,13 @@ export const getAllUsers = async (req, res) => {
 // Get a user by Clerk ID
 export const getUserByClerkId = async (req, res) => {
   try {
-    const userId = req.auth.userId;
+    const {userId} = req.params;
 
     if (!userId) {
       return void res.status(400).json({ error: "Error: No signed-in user" });
     }
 
-    const user = await clerkClient.users.getUser(userId)
+    const user = await User.findOne({ clerkId: userId })
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

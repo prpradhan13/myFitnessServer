@@ -27,16 +27,21 @@ const limiter = rateLimit({
 const app = express();
 
 app.use(cors());
-// app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(helmet());
 // app.use(limiter);
 app.use(morgan("combined"));
-
-// Pass no parameters
 app.use(clerkMiddleware())
 
 const SIGNING_SECRET = process.env.SIGNING_SECRET
+
+app.use((req, res, next) => {
+  if (req.path === '/api/webhooks') {
+    next();
+  } else {
+    express.json({ limit: "16kb" })(req, res, next);
+  }
+});
 
 app.post(
   '/api/webhooks',
@@ -64,8 +69,7 @@ app.post(
         message: err.message,
       })
     }
-
-    const { id } = evt.data
+    
     const eventType = evt.type
 
     if (eventType === "user.created") {
@@ -88,7 +92,7 @@ app.post(
         gender
       }
 
-      console.log(user);
+      // console.log(user);
       const newUser = await userModel.create(user);
 
       // if (newUser) {

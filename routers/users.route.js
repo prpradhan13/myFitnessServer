@@ -4,6 +4,6 @@ import { requireAuth } from "@clerk/express"; // Ensures the user is authenticat
 
 const router = express.Router();
 
-router.get('/users/:clerkId', getUserByClerkId);
+router.get('/users/:userId', getUserByClerkId);
 
 export default router;
