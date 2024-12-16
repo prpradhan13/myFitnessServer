@@ -22,6 +22,12 @@ export const getAllPlans = async (req, res) => {
 
 export const getPlanById = async (req, res) => {
   try {
+    const { userId } = req.auth;
+
+    if (!userId) {
+      return res.status(404).json({ error: "User not valid" })
+    }
+
     const { planId } = req.params;
 
     const plan = await Plan.findById(planId).populate("days");
@@ -42,6 +48,12 @@ export const getPlanById = async (req, res) => {
 
 export const createPlan = async (req, res) => {
   try {
+    const { userId } = req.auth;
+
+    if (!userId) {
+      return res.status(404).json({ error: "User not valid" })
+    }
+
     const { name, planType, isPublic, difficultyLevel, description, days } =
       req.body;
 
@@ -104,6 +116,7 @@ export const createPlan = async (req, res) => {
     const newPlan = new Plan({
       name,
       planType,
+      createdBy: userId,
       isPublic,
       difficultyLevel,
       description,

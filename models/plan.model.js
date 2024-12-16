@@ -13,11 +13,10 @@ const planSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    // createdBy: {
-    //     type: String,
-    //     ref: "User",
-    //     required: true,
-    // },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     isPublic: {
       type: Boolean,
       default: false,

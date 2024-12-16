@@ -22,6 +22,7 @@ export const getDayExercises = async (req, res) => {
 
 export const getDayExerciseById = async (req, res) => {
   try {
+
     const { dayId } = req.params;
 
     const dayExercises = await Day.findById(dayId).populate("exercises");
@@ -42,6 +43,12 @@ export const getDayExerciseById = async (req, res) => {
 
 export const createDay = async (req, res) => {
   try {
+    const { userId } = req.auth;
+
+    if (!userId) {
+      return res.status(404).json({ error: "User not valid" })
+    }
+
     const { name, isPublic, exercises } = req.body;
 
     // Validate required fields
@@ -83,6 +90,7 @@ export const createDay = async (req, res) => {
     const newDay = new Day({
       name,
       isPublic,
+      createdBy: userId,
       exercises: exerciseIds, // Only pass ObjectIds here
     });
 

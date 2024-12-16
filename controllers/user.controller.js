@@ -33,17 +33,11 @@ export const getUserByClerkId = async (req, res) => {
 };
 
 // Create or update a user (upsert)
-export const createOrUpdateUser = async (req, res) => {
-  const { clerkId, name, gender, age, height, weight, fitness_level, role } =
-    req.body;
-
+export const createUser = async (user) => {
   try {
-    const user = await User.findOneAndUpdate(
-      { clerkId },
-      { clerkId, name, gender, age, height, weight, fitness_level, role },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-    return res.status(200).json(user);
+    const newUser = await User.create(user);
+    return res.status(200).json(newUser);
+
   } catch (error) {
     return res
       .status(500)

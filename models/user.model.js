@@ -2,11 +2,21 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    _id: {
+    clerkId: {
       type: String,
       required: true,
+      unique: true
     },
-    name: {
+    email: {
+      type: String,
+    },
+    first_name: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+    },
+    last_name: {
       type: String,
       required: true,
       lowercase: true,
@@ -14,13 +24,11 @@ const userSchema = new mongoose.Schema(
     },
     gender: { type: String },
     isAdmin: { type: Boolean, default: false },
-    age: { type: Number },
-    height: { type: Number },
-    weight: { type: Number },
-    fitness_level: { type: String },
+    age: { type: Number, default: 0 },
+    fitness_level: { type: String, default: "begginer"},
     role: { type: String, enum: ["trainer", "gym_goer"], default: "gym_goer" },
   },
-  { timestamps: true, _id: false }
+  { timestamps: true }
 ); // Disable default MongoDB _id
 
 export default mongoose.model("User", userSchema);

@@ -2,9 +2,6 @@ import Exercise from "../models/exercise.model.js";
 
 export const getAllExercise = async (req, res) => {
   try {
-    // In future add userId for verify that user is logged in and can access the exercise
-    // Add cashing also
-
     const exercises = await Exercise.find();
 
     return res.status(200).json({
@@ -23,6 +20,12 @@ export const getAllExercise = async (req, res) => {
 
 export const createExercise = async (req, res) => {
   try {
+    const { userId } = req.auth;
+
+    if (!userId) {
+      return res.status(404).json({ error: "User not valid" })
+    }
+
     const {
       name,
       targetMuscle,
@@ -48,6 +51,7 @@ export const createExercise = async (req, res) => {
       difficultyLevel,
       equipmentRequired,
       instruction,
+      createdBy: userId,
       isPublic,
       sets,
     });
