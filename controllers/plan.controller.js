@@ -8,7 +8,19 @@ const cache = new NodeCache({ stdTTL: 600 });
 
 export const getAllPlans = async (req, res) => {
   try {
-    const plans = await Plan.find().populate("days");
+    const plans = await Plan.find({ isPublic: true }).populate("days");
+    
+    const cacheKey = `publicPlan`;
+    const cachedData = cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log(`Serving data from cache for publicPlan`);
+      return res.status(200).json({
+        success: true,
+        message: "data retrieved from cache successfully",
+        planData: cachedData,
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -29,6 +41,9 @@ export const getPlanById = async (req, res) => {
     const { planId } = req.params;
 
     const plan = await Plan.findById(planId).populate("days");
+
+    const cacheKey = `userPlan_${planId}`;
+    cache.del(cacheKey);
 
     return res.status(200).json({
       success: true,
