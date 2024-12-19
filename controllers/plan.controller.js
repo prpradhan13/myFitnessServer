@@ -6,21 +6,25 @@ import NodeCache from "node-cache";
 // Initialize the cache with a default TTL of 600 seconds (10 minutes)
 const cache = new NodeCache({ stdTTL: 600 });
 
-export const getAllPlans = async (req, res) => {
+// It give all public plans
+export const getAllPublicPlans = async (req, res) => {
   try {
-    const plans = await Plan.find({ isPublic: true }).populate("days");
-    
-    const cacheKey = `publicPlan`;
-    const cachedData = cache.get(cacheKey);
+    const publicCacheKey = 'publicPlan';
+    const cachedData = await cache.get(publicCacheKey);
 
     if (cachedData) {
       console.log(`Serving data from cache for publicPlan`);
       return res.status(200).json({
         success: true,
         message: "data retrieved from cache successfully",
-        planData: cachedData,
+        planData: JSON.parse(cachedData),
       });
     }
+
+    const plans = await Plan.find({ isPublic: true }).populate("days");
+    
+    // Save the plans to the cache for future use
+    cache.set(publicCacheKey, JSON.stringify(plans));
 
     return res.status(200).json({
       success: true,
@@ -36,14 +40,32 @@ export const getAllPlans = async (req, res) => {
   }
 };
 
+// It is need the plan's _id
 export const getPlanById = async (req, res) => {
   try {
     const { planId } = req.params;
 
-    const plan = await Plan.findById(planId).populate("days");
+    if (!planId) {
+      return res.status(404).json({
+        success: false,
+        message: "Plan Id is required"
+      })
+    }
 
     const cacheKey = `userPlan_${planId}`;
-    cache.del(cacheKey);
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log(`Serving data from cache for getPlanById`);
+      return res.status(200).json({
+        success: true,
+        message: "data retrieved from cache successfully",
+        planData: JSON.parse(cachedData),
+      });
+    }
+
+    const plan = await Plan.findById(planId).populate("days");
+    cache.set(cacheKey, JSON.stringify(plan));
 
     return res.status(200).json({
       success: true,
@@ -62,6 +84,9 @@ export const getPlanById = async (req, res) => {
 export const createPlan = async (req, res) => {
   try {
     const { userId } = req.params;
+
+    const userCacheKey = `userPlan_${userId}`;
+    const publicCacheKey = 'publicPlan';
 
     if (!userId) {
       return res.status(404).json({ message: 'User not found' });
@@ -112,6 +137,7 @@ export const createPlan = async (req, res) => {
         // Create a new Day document
         const newDay = new Day({
           name: day.name,
+          createdBy: userId,
           exercises: exerciseReferences,
         });
         const savedDay = await newDay.save();
@@ -136,6 +162,12 @@ export const createPlan = async (req, res) => {
     });
 
     const savedPlan = await newPlan.save();
+    
+    // Invalidate both user-specific and public cache
+    cache.del(userCacheKey);
+    if (isPublic) {
+      cache.del(publicCacheKey);
+    }
 
     return res.status(201).json({
       success: true,
@@ -164,14 +196,14 @@ export const getPlanByUser = async (req, res) => {
     }
 
     const cacheKey = `userPlan_${userId}`;
-    const cachedData = cache.get(cacheKey);
+    const cachedData = await cache.get(cacheKey);
 
     if (cachedData) {
       console.log(`Serving data from cache for ${userId}`);
       return res.status(200).json({
         success: true,
         message: "data retrieved from cache successfully",
-        planData: cachedData,
+        planData: JSON.parse(cachedData),
       });
     }
 
@@ -184,7 +216,7 @@ export const getPlanByUser = async (req, res) => {
       });
     }
 
-    cache.set(cacheKey, plan);
+    cache.set(cacheKey, JSON.stringify(plan));
 
     return res.status(200).json({
       success: true,

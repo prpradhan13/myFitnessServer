@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Day from "../models/day.model.js";
 import Exercise from "../models/exercise.model.js";
 
+// This is give all day data (public & private)
 export const getDayExercises = async (req, res) => {
   try {
     const dayExercises = await Day.find().populate("exercises");
@@ -20,16 +21,43 @@ export const getDayExercises = async (req, res) => {
   }
 };
 
+// Only snd public data
+export const getPublicDayExercises = async (req, res) => {
+  try {
+    const publicDayExercises = await Day.find({ isPublic: true }).populate('exercises');
+
+    return res.status(200).json({
+      success: true,
+      day: publicDayExercises
+    });
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Error in get public exercise",
+    });
+  }
+};
+
+// it is need Day's mongodb Id
 export const getDayExerciseById = async (req, res) => {
   try {
-
     const { dayId } = req.params;
+
+    if (cacheData) {
+      return res.status(200).json({
+        success: true,
+        message: "Day exercise was successfully retrieved from cache",
+        day: JSON.parse(cacheData),
+      });
+    }
 
     const dayExercises = await Day.findById(dayId).populate("exercises");
 
     return res.status(200).json({
       success: true,
-      dayExercisesData: dayExercises,
+      day: dayExercises,
     });
   } catch (error) {
     console.log(error);
@@ -41,15 +69,33 @@ export const getDayExerciseById = async (req, res) => {
   }
 };
 
+// It is need a user's mongodb _id
+export const getDayExercisesByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const dayData = await Day.find({ createdBy: userId }).populate("exercises");
+
+    return res.status(200).json({
+      success: true,
+      day: dayData
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Error in getDayExercisesByUserId",
+    })
+  }
+};
+
 export const createDay = async (req, res) => {
   try {
-    const { userId } = req.auth;
+    const { name, createdBy, isPublic, exercises } = req.body;
 
-    if (!userId) {
+    if (!createdBy) {
       return res.status(404).json({ error: "User not valid" })
     }
-
-    const { name, isPublic, exercises } = req.body;
 
     // Validate required fields
     if (!name || !exercises || exercises.length === 0) {
@@ -90,7 +136,7 @@ export const createDay = async (req, res) => {
     const newDay = new Day({
       name,
       isPublic,
-      createdBy: userId,
+      createdBy,
       exercises: exerciseIds, // Only pass ObjectIds here
     });
 

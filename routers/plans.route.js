@@ -1,9 +1,9 @@
 import express from "express";
-import { createPlan, getAllPlans, getPlanById, getPlanByUser } from "../controllers/plan.controller.js";
+import { createPlan, getAllPublicPlans, getPlanById, getPlanByUser } from "../controllers/plan.controller.js";
 
 const router = express.Router();
 
-router.route('/plans').get(getAllPlans);
+router.route('/publicPlans').get(getAllPublicPlans);
 
 // It is need a Plan's Id
 router.route('/plans/:planId').get(getPlanById);

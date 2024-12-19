@@ -21,6 +21,6 @@ const daySchema = new mongoose.Schema({
           ref: "Exercise", // This creates a reference to the Exercise model
         },
     ],
-});
+}, {timestamps: true});
 
 export default mongoose.model('Day', daySchema)
