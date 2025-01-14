@@ -45,14 +45,6 @@ export const getDayExerciseById = async (req, res) => {
   try {
     const { dayId } = req.params;
 
-    if (cacheData) {
-      return res.status(200).json({
-        success: true,
-        message: "Day exercise was successfully retrieved from cache",
-        day: JSON.parse(cacheData),
-      });
-    }
-
     const dayExercises = await Day.findById(dayId).populate("exercises");
 
     return res.status(200).json({
